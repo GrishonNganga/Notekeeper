@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+
         //Set Spinner
         spinnerCourses = findViewById(R.id.spinner_courses);
 
