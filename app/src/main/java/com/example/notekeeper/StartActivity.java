@@ -120,7 +120,6 @@ public class StartActivity extends AppCompatActivity
         notesRecycler.setLayoutManager(layoutManager);
         notesRecycler.setAdapter(noteRecyclerAdapter);
 
-        SQLiteDatabase sqLiteDatabase = helper.getReadableDatabase();
         selectNavMEnuItem(R.id.nav_notes);
     }
 

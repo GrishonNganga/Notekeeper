@@ -31,10 +31,11 @@ public class DataManager {
 
     public static void loadFromDb(NoteKeeperOpenHelper keeperOpenHelper){
 
-        SQLiteDatabase sqLiteDatabase = keeperOpenHelper.getWritableDatabase();
+        SQLiteDatabase sqLiteDatabase = keeperOpenHelper.getReadableDatabase();
         final String[] courseColumns = {
                 CourseInfoEntry.COL_COURSE_ID,
                 CourseInfoEntry.COL_COURSE_TITLE};
+
         Cursor courseQuery = sqLiteDatabase.query(CourseInfoEntry.TABLE_NAME, courseColumns,
                 null, null, null, null, null);
         loadCoursesFromDb(courseQuery);
@@ -48,25 +49,25 @@ public class DataManager {
         loadNotesFromDb(noteQuery);
     }
 
-    private static void loadNotesFromDb(Cursor noteQuery) {
+    private static void loadNotesFromDb(Cursor notesQuery) {
 
-        int noteTitle = noteQuery.getColumnIndex(NoteInfoEntry.COL_NOTE_TITLE);
-        int noteText = noteQuery.getColumnIndex(NoteInfoEntry.COL_NOTE_TEXT);
-        int notePos = noteQuery.getColumnIndex(NoteInfoEntry.COL_COURSE_ID);
+        int noteTitle = notesQuery.getColumnIndex(NoteInfoEntry.COL_NOTE_TITLE);
+        int noteText = notesQuery.getColumnIndex(NoteInfoEntry.COL_NOTE_TEXT);
+        int notePos = notesQuery.getColumnIndex(NoteInfoEntry.COL_COURSE_ID);
 
         DataManager dataManager = DataManager.getInstance();
         dataManager.mNotes.clear();
 
-        while (noteQuery.moveToNext()){
-            String title = noteQuery.getString(noteTitle);
-            String text = noteQuery.getString(noteText);
-            String id = noteQuery.getString(notePos);
+        while (notesQuery.moveToNext()){
+            String title = notesQuery.getString(noteTitle);
+            String text = notesQuery.getString(noteText);
+            String id = notesQuery.getString(notePos);
 
             CourseInfo course = dataManager.getCourse(id);
             NoteInfo note = new NoteInfo(course,title, text);
             dataManager.mNotes.add(note);
         }
-        noteQuery.close();
+        notesQuery.close();
     }
 
     private static void loadCoursesFromDb(Cursor courseQuery) {
