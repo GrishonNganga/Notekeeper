@@ -1,0 +1,39 @@
+<resources>
+    <string name="app_name" translatable="false">NoteKeeper</string>
+    <string name="action_settings" translatable="false">Settings</string>
+    <string name="title_activity_note" translatable="false">Edit Note</string>
+    <string name="title_activity_start">NoteKeeper</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <string name="menu_notes">Notes</string>
+    <string name="menu_courses">Courses</string>
+
+    <string name="menu_share">Share</string>
+    <string name="menu_send">Send</string>
+    <string name="note_title_hint">Note Title</string>
+    <string name="note_text_hint">Note Text</string>
+    <string name="send_btn">Send</string>
+    <string name="nav_share_message">Come on that\'s enough</string>
+    <string name="nav_send_message">Do send.</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Preference Titles -->
+    <string name="user_information_header">User Information</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="user_name">Your name</string>
+    <string name="email_address">Email Address</string>
+    <string name="pref_messages_default_email">Youremail@yourhost.com</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+</resources>
