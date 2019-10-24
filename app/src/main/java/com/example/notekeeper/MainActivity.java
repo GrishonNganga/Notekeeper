@@ -1,6 +1,8 @@
 package com.example.notekeeper;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -12,11 +14,13 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.example.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
+
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String NOTE_POSITION = "com.example.notekeeper.NOTE_POSITION";
-    public static final int POSITION_NOT_SET = -1;
+    public static final String NOTE_Id = "com.example.notekeeper.NOTE_Id";
+    public static final int ID_NOT_SET = -1;
     public static final String ORIGINAL_NOTE_COURSE_ID = "com.example.notekeeper.ORIGINAL_NOTE_COURSE_ID";
     public static final String ORIGINAL_NOTE_TITLE = "com.example.notekeeper.ORIGINAL_NOTE_TITLE";
     public static final String ORIGINAL_NOTE_TEXT = "com.example.notekeeper.ORIGINAL_NOTE_TEXT";
@@ -31,7 +35,19 @@ public class MainActivity extends AppCompatActivity {
     private String originalCourseId;
     private String originalText;
     private String originalTitle;
-    private int position;
+    private int _Id;
+    private NoteKeeperOpenHelper openHelper;
+    private SQLiteDatabase db;
+    private Cursor notesCursor;
+    private int courseIdPos;
+    private int noteTitlePos;
+    private int noteTextPos;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        openHelper.close();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
+        openHelper = new NoteKeeperOpenHelper(this);
         //Set Spinner
         spinnerCourses = findViewById(R.id.spinner_courses);
 
@@ -53,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         //Populate stuff
         readDisplayData();
         if (savedInstanceState == null){
-            saveOriginalData();
+            //saveOriginalData();
         } else {
             restoreOriginalStateValues(savedInstanceState);
         }
@@ -63,17 +79,41 @@ public class MainActivity extends AppCompatActivity {
 
         if(!mIsNewNote)
 
-            displayNote(spinnerCourses, title, note);
+            loadNoteData();
         else Toast.makeText(this, "Unsuccessful",Toast.LENGTH_SHORT).show();
+    }
+
+    private void loadNoteData() {
+        db = openHelper.getReadableDatabase();
+
+        String selection = NoteInfoEntry._ID + " = ? ";
+
+        String[] selectionArgs = {String.valueOf(_Id)};
+
+        String[] cols = {
+                NoteInfoEntry.COL_COURSE_ID,
+                NoteInfoEntry.COL_NOTE_TITLE,
+                NoteInfoEntry.COL_NOTE_TEXT
+        };
+        notesCursor = db.query(NoteInfoEntry.TABLE_NAME, cols, selection, selectionArgs, null, null, null);
+        notesCursor.moveToNext();
+        courseIdPos = notesCursor.getColumnIndex(NoteInfoEntry.COL_COURSE_ID);
+        noteTitlePos = notesCursor.getColumnIndex(NoteInfoEntry.COL_NOTE_TITLE);
+        noteTextPos = notesCursor.getColumnIndex(NoteInfoEntry.COL_NOTE_TEXT);
+
+        displayNote();
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         MenuItem menuItem = menu.findItem(R.id.action_next);
         int lastItem = DataManager.getInstance().getNotes().size() - 1;
-        if (position == lastItem)
+
+        //Refactored following lines because the Notes have been sorted on querying thus not factual
+
+        /*if (_Id == lastItem)
             Toast.makeText(this, "This is the last note",Toast.LENGTH_SHORT).show();
-        menuItem.setEnabled(position < lastItem);
+        menuItem.setEnabled(_Id < lastItem);*/
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -100,30 +140,49 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void displayNote(Spinner spinnerCourses, EditText title, EditText note) {
-        List<CourseInfo> courseInfos = DataManager.getInstance().getCourses();
-        int courseIndex = courseInfos.indexOf(mNote.getCourse());
-        spinnerCourses.setSelection(courseIndex);
-        title.setText(mNote.getTitle());
-        String showTitle = title.getText().toString();
-        Log.v("Title display", "The title is "+showTitle);
-        Toast.makeText(this, "Successful",Toast.LENGTH_SHORT).show();
-        note.setText(mNote.getText());
+    private void displayNote() {
+        //Populate Data from the database by the cursor. Check out loadNoteData().
+        //Get the strings contained on each columns.
+        String courseId = notesCursor.getString(courseIdPos);
+        String notesTitle = notesCursor.getString(noteTitlePos);
+        String notesText = notesCursor.getString(noteTextPos);
 
+        //The Spinner is a little bit different.
+        //First get list of courses. Get the course itself from the list of courses(Because the previous courseId was a String)
+        //Then finally get the index of the course which will be used to populate the Spinner.
+        List<CourseInfo> courseInfos = DataManager.getInstance().getCourses();
+        CourseInfo course = DataManager.getInstance().getCourse(courseId);
+        int courseIndex = courseInfos.indexOf(course);
+        spinnerCourses.setSelection(courseIndex);
+
+        //Actual populating to the rest of the UI
+        title.setText(notesTitle);
+        note.setText(notesText);
+        Log.v("Title display", "The title is "+ title.getText().toString());
+        Log.v("Text display", "The note is "+ note.getText().toString());
+        Log.v("Spinner display", "The spinner is selected to "+ spinnerCourses.getSelectedItem().toString());
+        Toast.makeText(this, "Successful", Toast.LENGTH_SHORT).show();
     }
 
     //Pull Data passed from the parcelable
     private void readDisplayData() {
         Intent intent = getIntent();
-        position = intent.getIntExtra(NOTE_POSITION, POSITION_NOT_SET);
+        _Id = intent.getIntExtra(NOTE_Id, ID_NOT_SET);
 
-        mIsNewNote = position == POSITION_NOT_SET;
+        mIsNewNote = _Id == ID_NOT_SET;
 
         if (mIsNewNote) {
             createNewNote();
         }
         else{
-            mNote = DataManager.getInstance().getNotes().get(position);
+            //After commenting preceeding line errors arised as will follow
+
+            //mNote = DataManager.getInstance().getNotes().get(_Id);
+
+            //1. mNote triggered null pointer exception.
+            //2. On onCreate() saveOriginal() failed as mNote was null thus bringing up an error.
+            //In short watch out for mNote from being null...
+
         }
 
     }
@@ -164,10 +223,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void moveNext() {
         saveNote();
-        position++;
-        mNote = DataManager.getInstance().getNotes().get(position);
+        _Id++;
+        mNote = DataManager.getInstance().getNotes().get(_Id);
         saveOriginalData();
-        displayNote(spinnerCourses, title, note);
+        displayNote();
         invalidateOptionsMenu();
     }
 
@@ -183,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         else {
+            //Saves the selcted note on Pressing back or any other onPause trigger.
             saveNote();
         }
     }
@@ -196,6 +256,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void saveNote() {
+        //Made the mNote null because apparently it had a null point exception ...
+        mNote = new NoteInfo(null, null, null, null);
         mNote.setCourse((CourseInfo) spinnerCourses.getSelectedItem());
         mNote.setTitle(title.getText().toString());
         mNote.setText(note.getText().toString());

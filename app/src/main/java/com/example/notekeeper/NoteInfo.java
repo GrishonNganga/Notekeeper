@@ -3,24 +3,26 @@ package com.example.notekeeper;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.google.gson.Gson;
-
 /**
  * Created by Jim.
  */
 
 public final class NoteInfo implements Parcelable{
+    private String m_Id;
     private CourseInfo mCourse;
     private String mTitle;
     private String mText;
 
-    public NoteInfo(CourseInfo course, String title, String text) {
+    public NoteInfo(String _Id, CourseInfo course, String title, String text) {
         mCourse = course;
         mTitle = title;
         mText = text;
+        m_Id = _Id;
+
     }
 
     private NoteInfo(Parcel source) {
+        m_Id = source.readString();
         mCourse = source.readParcelable(CourseInfo.class.getClassLoader());
         mTitle = source.readString();
         mText = source.readString();
@@ -48,6 +50,14 @@ public final class NoteInfo implements Parcelable{
 
     public void setText(String text) {
         mText = text;
+    }
+
+    public String get_Id() {
+        return m_Id;
+    }
+
+    public void set_Id(String _Id) {
+         m_Id = _Id ;
     }
 
     private String getCompareKey() {
