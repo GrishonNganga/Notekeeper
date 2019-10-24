@@ -37,15 +37,16 @@ public class DataManager {
                 CourseInfoEntry.COL_COURSE_TITLE};
 
         Cursor courseQuery = sqLiteDatabase.query(CourseInfoEntry.TABLE_NAME, courseColumns,
-                null, null, null, null, null);
+                null, null, null, null, CourseInfoEntry.COL_COURSE_TITLE);
         loadCoursesFromDb(courseQuery);
         final String[] noteColumns = {
                 NoteInfoEntry.COL_NOTE_TITLE,
                 NoteInfoEntry.COL_NOTE_TEXT,
                 NoteInfoEntry.COL_COURSE_ID,
                 };
+        String orderBy = NoteInfoEntry.COL_COURSE_ID + ", " + NoteInfoEntry.COL_NOTE_TITLE;
         Cursor noteQuery = sqLiteDatabase.query(NoteInfoEntry.TABLE_NAME, noteColumns,
-                null, null, null, null, null);
+                null, null, null, null, orderBy);
         loadNotesFromDb(noteQuery);
     }
 
